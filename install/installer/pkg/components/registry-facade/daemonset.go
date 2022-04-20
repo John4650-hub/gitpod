@@ -314,6 +314,7 @@ func daemonset(ctx *common.RenderContext) ([]runtime.Object, error) {
 							Path: "/",
 						}},
 					},
+						*common.InternalCAVolume(),
 						*common.NewEmptyDirVolume("cacerts"),
 					}, volumes...),
 				},

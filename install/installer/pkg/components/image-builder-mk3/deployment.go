@@ -84,6 +84,7 @@ func deployment(ctx *common.RenderContext) ([]runtime.Object, error) {
 				},
 			},
 		},
+		*common.InternalCAVolume(),
 		*common.NewEmptyDirVolume("cacerts"),
 	}
 	volumeMounts := []corev1.VolumeMount{
