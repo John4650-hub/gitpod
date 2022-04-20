@@ -169,7 +169,7 @@ function isGitpodIo() {
 
 function Card(p: { className?: string; children?: React.ReactNode }) {
     return (
-        <div className={"flex rounded-xl font-semibold text-sm w-72 h-64 px-4 " + (p.className || "")}>
+        <div className={"flex rounded-xl font-semibold text-base w-72 h-64 px-4 " + (p.className || "")}>
             <span>{p.children}</span>
         </div>
     );
