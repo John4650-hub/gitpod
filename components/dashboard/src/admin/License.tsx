@@ -12,9 +12,7 @@ import { ReactElement, useContext, useEffect } from "react";
 import { getGitpodService } from "../service/service";
 
 import { ReactComponent as Alert } from "../images/exclamation.svg";
-import { ReactComponent as Success } from "../images/tick.svg";
-import { ReactComponent as Tick } from "../images/check.svg";
-import { ReactComponent as Cross } from "../images/x.svg";
+import { ReactComponent as Success } from "../images/check-circle.svg";
 
 export default function License() {
     const { license, setLicense } = useContext(LicenseContext);
@@ -50,42 +48,43 @@ export default function License() {
                 subtitle="License associated with your Gitpod Installation"
             >
                 <div className="flex flex-row space-x-4">
-                    <Card className="bg-gray-800 dark:bg-white text-white dark:text-gray-400">
-                        <p className="text-white dark:text-black font-bold pt-4 text-sm"> {licenseLevel}</p>
+                    <Card className="bg-gray-800 dark:bg-gray-100 text-gray-300 dark:text-gray-400">
+                        <p className="text-white dark:text-black font-bold pt-4"> {licenseLevel}</p>
                         <p className="dark:text-gray-500">{paid}</p>
-                        <p className="text-gray-400 pt-4 pb-2">Available features:</p>
+                        <div className="pt-4">Available features:</div>
                         {features &&
                             features.map((feat: string) => (
                                 <div className="flex">
                                     {featureList?.includes(feat) ? (
-                                        <Tick className="h-4" />
+                                        <span className="pr-1">&#10003;</span>
                                     ) : (
-                                        <Cross className="h-4 w-4 px-1" />
+                                        <span className="pr-1">&#10007;</span>
                                     )}
                                     {capitalizeInitials(feat)}
                                 </div>
                             ))}
                     </Card>
-                    <Card className="bg-gray-200 dark:bg-gray-900 text-gray-600 dark:text-gray-600">
-                        <div className="text-gray-600 dark:text-gray-200 text-sm py-4 flex-row flex items-center">
+                    <Card className="bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-600 relative">
+                        <div className="text-gray-600 dark:text-gray-200 py-4 flex-row flex items-center">
                             <div>{msg}</div>
                             <div className="px-4">{getLicenseValidIcon(tick)}</div>
                         </div>
                         <p className="dark:text-gray-500">Registered Users</p>
                         <span className="dark:text-gray-300 pt-1 text-lg">{license?.userCount || 0}</span>
                         <span className="dark:text-gray-500 text-gray-400 pt-1 text-lg"> / {userLimit} </span>
-                        <p className="dark:text-gray-500 pt-2 ">License Type</p>
+                        <p className="dark:text-gray-500 pt-2">License Type</p>
                         <h4 className="dark:text-gray-300 pt-1 text-lg">{capitalizeInitials(license?.type || "")}</h4>
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                window.location.href = "https://www.gitpod.io/self-hosted";
-                            }}
-                            className="ml-2 float-right"
-                        >
-                            {license?.plan == "prod" ? "Contact Sales" : "Request License"}
-                        </button>
+                        <div className="flex justify-end absolute bottom-4 right-4">
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    window.location.href = "https://www.gitpod.io/self-hosted";
+                                }}
+                            >
+                                Compare Plans
+                            </button>
+                        </div>
                     </Card>
                 </div>
             </PageWithSubMenu>
@@ -170,7 +169,7 @@ function isGitpodIo() {
 
 function Card(p: { className?: string; children?: React.ReactNode }) {
     return (
-        <div className={"flex rounded-xl font-semibold text-xs w-72 h-64 px-4 " + (p.className || "")}>
+        <div className={"flex rounded-xl font-semibold text-sm w-72 h-64 px-4 " + (p.className || "")}>
             <span>{p.children}</span>
         </div>
     );
