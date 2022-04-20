@@ -13,8 +13,10 @@ import { WorkspaceEntry } from "./WorkspaceEntry";
 import { getGitpodService } from "../service/service";
 import { ItemsList } from "../components/ItemsList";
 import { TeamsContext } from "../teams/teams-context";
+import { UserContext } from "../user-context";
 import { useLocation } from "react-router";
 import { StartWorkspaceModalContext, StartWorkspaceModalKeyBinding } from "./start-workspace-modal-context";
+import SelectIDE from "../settings/SelectIDE";
 
 export interface WorkspacesProps {}
 
@@ -25,8 +27,10 @@ export interface WorkspacesState {
 }
 
 export default function () {
+    console.log("RENDER!");
     const location = useLocation();
 
+    const { user } = useContext(UserContext);
     const { teams } = useContext(TeamsContext);
     const [activeWorkspaces, setActiveWorkspaces] = useState<WorkspaceInfo[]>([]);
     const [inactiveWorkspaces, setInactiveWorkspaces] = useState<WorkspaceInfo[]>([]);
@@ -40,12 +44,20 @@ export default function () {
         })();
     }, [teams, location]);
 
+    const hasWorkspaces = activeWorkspaces.length > 0 || inactiveWorkspaces.length > 0;
+
+    // TODO: make hasPreferredIde work properly
+    const hasPreferredIde = typeof user?.additionalData?.ideSettings?.defaultIde !== "undefined";
+
+    if (user) console.log(user);
+    // console.log({ hasPreferredIde, typeof: typeof user?.additionalData?.ideSettings?.defaultIde, defaultIde: user?.additionalData });
+
     return (
         <>
             <Header title="Workspaces" subtitle="Manage recent and stopped workspaces." />
 
             {workspaceModel?.initialized &&
-                (activeWorkspaces.length > 0 || inactiveWorkspaces.length > 0 || workspaceModel.searchTerm ? (
+                (hasWorkspaces || workspaceModel.searchTerm ? (
                     <>
                         <div className="app-container py-2 flex">
                             <div className="flex">
@@ -144,30 +156,54 @@ export default function () {
                         </ItemsList>
                     </>
                 ) : (
-                    <div className="app-container flex flex-col space-y-2">
-                        <div className="px-6 py-3 flex flex-col text-gray-400 border-t border-gray-200 dark:border-gray-800">
-                            <div className="flex flex-col items-center justify-center h-96 w-96 mx-auto">
-                                <>
-                                    <h3 className="text-center pb-3 text-gray-500 dark:text-gray-400">No Workspaces</h3>
-                                    <div className="text-center pb-6 text-gray-500">
-                                        Prefix any Git repository URL with {window.location.host}/# or create a new
-                                        workspace for a recently used project.{" "}
-                                        <a className="gp-link" href="https://www.gitpod.io/docs/getting-started/">
-                                            Learn more
-                                        </a>
-                                    </div>
-                                    <span>
-                                        <button onClick={() => setIsStartWorkspaceModalVisible(true)}>
-                                            New Workspace{" "}
-                                            <span className="opacity-60 hidden md:inline">
-                                                {StartWorkspaceModalKeyBinding}
-                                            </span>
-                                        </button>
-                                    </span>
-                                </>
+                    <>
+                        {!hasPreferredIde && (
+                            <div className="px-6 py-10 flex flex-col text-gray-400 border-t border-gray-200 dark:border-gray-800">
+                                <div className="flex flex-col items-center justify-center mx-auto w-4/12">
+                                    <>
+                                        <h3 className="text-center pb-3">Choose your Default IDE</h3>
+                                        <p className="text-base text-gray-500 dark:text-gray-400">
+                                            Gitpod is using Code as the default IDE. You can choose a different IDE or
+                                            use a custom IDE image.
+                                        </p>
+                                        {/* <pre>{JSON.stringify(user?.additionalData, null, 2)}</pre> */}
+                                        <SelectIDE showLatest={false} />
+                                    </>
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        )}
+                        {hasPreferredIde && (
+                            <div className="app-container flex flex-col space-y-2">
+                                <div className="px-6 py-3 flex flex-col text-gray-400 border-t border-gray-200 dark:border-gray-800">
+                                    <div className="flex flex-col items-center justify-center h-96 w-96 mx-auto">
+                                        <>
+                                            <h3 className="text-center pb-3 text-gray-500 dark:text-gray-400">
+                                                No Workspaces
+                                            </h3>
+                                            <div className="text-center pb-6 text-gray-500">
+                                                Prefix any Git repository URL with {window.location.host}/# or create a
+                                                new workspace for a recently used project.{" "}
+                                                <a
+                                                    className="gp-link"
+                                                    href="https://www.gitpod.io/docs/getting-started/"
+                                                >
+                                                    Learn more
+                                                </a>
+                                            </div>
+                                            <span>
+                                                <button onClick={() => setIsStartWorkspaceModalVisible(true)}>
+                                                    New Workspace{" "}
+                                                    <span className="opacity-60 hidden md:inline">
+                                                        {StartWorkspaceModalKeyBinding}
+                                                    </span>
+                                                </button>
+                                            </span>
+                                        </>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 ))}
         </>
     );

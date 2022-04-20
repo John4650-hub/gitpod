@@ -101,7 +101,7 @@ export class TypeORMUserDBImpl implements UserDB {
             creationDate: new Date().toISOString(),
             identities: [],
             additionalData: {
-                ideSettings: { defaultIde: "code" },
+                // ideSettings: { defaultIde: "code" },
                 emailNotificationSettings: {
                     allowsChangelogMail: true,
                     allowsDevXMail: true,
