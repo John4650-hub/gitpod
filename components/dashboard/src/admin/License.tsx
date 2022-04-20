@@ -13,6 +13,9 @@ import { getGitpodService } from "../service/service";
 
 import { ReactComponent as Alert } from "../images/exclamation.svg";
 import { ReactComponent as Success } from "../images/check-circle.svg";
+import { LicenseInfo } from "@gitpod/gitpod-protocol";
+import { ReactComponent as XSvg } from "../images/x.svg";
+import { ReactComponent as CheckSvg } from "../images/check.svg";
 
 export default function License() {
     const { license, setLicense } = useContext(LicenseContext);
@@ -33,12 +36,7 @@ export default function License() {
     // if user seats is 0, it means that there is user limit in the license
     const userLimit = license?.seats == 0 ? "Unlimited" : license?.seats;
 
-    const [licenseLevel, paid, msg, tick] = getSubscriptionLevel(
-        license?.plan || "",
-        license?.userCount || 0,
-        license?.seats || 0,
-        license?.fallbackAllowed || false,
-    );
+    const [licenseLevel, paid, statusMessage] = license ? getSubscriptionLevel(license) : defaultMessage();
 
     return (
         <div>
@@ -49,32 +47,33 @@ export default function License() {
             >
                 <div className="flex flex-row space-x-4">
                     <Card className="bg-gray-800 dark:bg-gray-100 text-gray-300 dark:text-gray-400">
-                        <p className="text-white dark:text-black font-bold pt-4"> {licenseLevel}</p>
-                        <p className="dark:text-gray-500">{paid}</p>
-                        <div className="pt-4">Available features:</div>
-                        {features &&
-                            features.map((feat: string) => (
-                                <div className="flex">
-                                    {featureList?.includes(feat) ? (
-                                        <span className="pr-1">&#10003;</span>
-                                    ) : (
-                                        <span className="pr-1">&#10007;</span>
-                                    )}
-                                    {capitalizeInitials(feat)}
-                                </div>
-                            ))}
-                    </Card>
-                    <Card className="bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-600 relative">
-                        <div className="text-gray-600 dark:text-gray-200 py-4 flex-row flex items-center">
-                            <div>{msg}</div>
-                            <div className="px-4">{getLicenseValidIcon(tick)}</div>
+                        {licenseLevel}
+                        {paid}
+                        <div className="pt-4 font-semibold">Available features:</div>
+                        <div className="flex flex-col pt-1">
+                            {features &&
+                                features.map((feat: string) => (
+                                    <span className="inline-flex px-1">
+                                        {featureList?.includes(feat) ? (
+                                            <CheckSvg className="w-5" strokeWidth="1" />
+                                        ) : (
+                                            <XSvg strokeWidth="1" className="w-5" />
+                                        )}
+                                        <span>{capitalizeInitials(feat)}</span>
+                                    </span>
+                                ))}
                         </div>
-                        <p className="dark:text-gray-500">Registered Users</p>
+                    </Card>
+                    <Card className="bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-600">
+                        <div className="text-gray-600 dark:text-gray-200 py-4 flex-row flex font-semibold items-center">
+                            {statusMessage}
+                        </div>
+                        <p className="dark:text-gray-500 font-semibold">Registered Users</p>
                         <span className="dark:text-gray-300 pt-1 text-lg">{license?.userCount || 0}</span>
                         <span className="dark:text-gray-500 text-gray-400 pt-1 text-lg"> / {userLimit} </span>
-                        <p className="dark:text-gray-500 pt-2">License Type</p>
+                        <p className="dark:text-gray-500 pt-2 font-semibold">License Type</p>
                         <h4 className="dark:text-gray-300 pt-1 text-lg">{capitalizeInitials(license?.type || "")}</h4>
-                        <div className="flex justify-end absolute bottom-4 right-4">
+                        <div className="flex justify-end bottom-2 relative">
                             <button
                                 type="button"
                                 onClick={(e) => {
@@ -82,7 +81,7 @@ export default function License() {
                                     window.location.href = "https://www.gitpod.io/self-hosted";
                                 }}
                             >
-                                Compare Plans
+                                <div className="font-semibold">Compare Plans</div>
                             </button>
                         </div>
                     </Card>
@@ -101,66 +100,112 @@ function capitalizeInitials(str: string): string {
         .join(" ");
 }
 
-function getSubscriptionLevel(level: string, userCount: number, seats: number, fallbackAllowed: boolean): string[] {
-    switch (level) {
-        case "prod": {
-            return professionalPlan(userCount, seats);
-        }
-        case "community": {
-            return communityPlan(userCount, seats, fallbackAllowed);
-        }
-        case "trial": {
-            return ["Trial", "Free", "You have a trial license.", "grey-tick"];
-        }
+function getSubscriptionLevel(license: LicenseInfo): ReactElement[] {
+    switch (license.plan) {
+        case "prod":
+        case "trial":
+            return professionalPlan(license.userCount || 0, license.seats, license.plan == "trial", license.validUntil);
+        case "community":
+            return communityPlan(license.userCount || 0, license.seats, license.fallbackAllowed);
         default: {
-            return ["Unknown", "Free", "No active licenses.", "red-cross"];
+            return defaultMessage();
         }
     }
 }
 
-function professionalPlan(userCount: number, seats: number): string[] {
-    const aboveLimit: boolean = userCount > seats;
-    let msg: string, tick: string;
-    if (aboveLimit) {
-        msg = "You have exceeded the usage limit.";
-        tick = "red-cross";
-    } else {
-        msg = "You have an active professional license.";
-        tick = "green-tick";
-    }
-
-    return ["Professional", "Paid", msg, tick];
+function licenseLevel(level: string): ReactElement {
+    return <p className="text-white dark:text-black font-bold pt-4"> {level}</p>;
 }
 
-function communityPlan(userCount: number, seats: number, fallbackAllowed: boolean): string[] {
+function additionalLicenseInfo(data: string): ReactElement {
+    return <p className="dark:text-gray-500">{data}</p>;
+}
+
+function defaultMessage(): ReactElement[] {
+    const alertMessage = () => {
+        return (
+            <>
+                <div>Inactive or unknown license</div>
+                <div className="flex justify-right my-4 mx-1">
+                    <Alert fill="grey" className="h-8 w-8" />
+                </div>
+            </>
+        );
+    };
+
+    return [licenseLevel("Inactive"), additionalLicenseInfo("Free"), alertMessage()];
+}
+
+function professionalPlan(userCount: number, seats: number, trial: boolean, validUntil: string): ReactElement[] {
+    const alertMessage = (aboveLimit: boolean) => {
+        return aboveLimit ? (
+            <>
+                <div className="text-red-600">You have exceeded the usage limit.</div>
+                <div className="flex justify-right my-4 mx-1">
+                    <Alert fill="red" className="h-6 w-6" />
+                </div>
+            </>
+        ) : (
+            <>
+                <div className="text-green-600">You have an active professional license.</div>
+                <div className="flex justify-right my-4 mx-1">
+                    <Success fill="green" className="h-8 w-8" />
+                </div>
+            </>
+        );
+    };
+
     const aboveLimit: boolean = userCount > seats;
 
-    let msg: string = "You are using the free community edition";
-    let tick: string = "green-tick";
-    if (aboveLimit) {
-        if (fallbackAllowed) {
-            msg = "No active license. You are using the community edition.";
-            tick = "grey-tick";
+    const licenseTitle = () => {
+        if (trial) {
+            const expDate = new Date(validUntil);
+            if (typeof expDate.getTime !== "function") {
+                return additionalLicenseInfo("Trial");
+            } else {
+                return additionalLicenseInfo("Trial expires on " + expDate.toLocaleDateString());
+            }
         } else {
-            msg = "No active license. You have exceeded the usage limit.";
-            tick = "red-cross";
+            return additionalLicenseInfo("Paid");
         }
-    }
+    };
 
-    return ["Community", "Free", msg, tick];
+    return [licenseLevel("Professional"), licenseTitle(), alertMessage(aboveLimit)];
 }
 
-function getLicenseValidIcon(iconname: string): ReactElement {
-    switch (iconname) {
-        case "green-tick":
-            return <Success fill="green" className="h-8 w-8" />;
-        case "grey-tick":
-            return <Success fill="gray" className="h-8 w-8" />;
-        case "red-cross":
-            return <Alert fill="red" className="h-8 w-8" />;
-        default:
-            return <Alert fill="gray" className="h-8 w-8" />;
-    }
+function communityPlan(userCount: number, seats: number, fallbackAllowed: boolean): ReactElement[] {
+    const alertMessage = (aboveLimit: boolean) => {
+        if (aboveLimit) {
+            return fallbackAllowed ? (
+                <>
+                    <div>No active license. You are using community edition.</div>
+                    <div className="flex justify-right my-4 mx-1">
+                        <Success fill="grey" className="h-8 w-8" />
+                    </div>
+                </>
+            ) : (
+                <>
+                    <div className="text-red-600">No active license. You have exceeded the usage limit.</div>
+                    <div className="flex justify-right my-4 mx-1">
+                        <Alert fill="red" className="h-8 w-8" />
+                    </div>
+                </>
+            );
+        } else {
+            return (
+                <>
+                    <div>You are using the free community edition.</div>
+                    <div className="flex justify-right my-4 mx-1">
+                        <Success fill="green" className="h-8 w-8" />
+                    </div>
+                </>
+            );
+        }
+    };
+
+    const aboveLimit: boolean = userCount > seats;
+
+    return [licenseLevel("Community"), additionalLicenseInfo("Free"), alertMessage(aboveLimit)];
 }
 
 function isGitpodIo() {
@@ -169,7 +214,7 @@ function isGitpodIo() {
 
 function Card(p: { className?: string; children?: React.ReactNode }) {
     return (
-        <div className={"flex rounded-xl font-semibold text-base w-72 h-64 px-4 " + (p.className || "")}>
+        <div className={"flex rounded-xl text-base w-72 h-64 px-4 " + (p.className || "")}>
             <span>{p.children}</span>
         </div>
     );
