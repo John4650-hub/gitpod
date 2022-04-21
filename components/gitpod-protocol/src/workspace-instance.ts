@@ -97,13 +97,13 @@ export type WorkspaceInstancePhase =
     // a workspace. This phase is usually accompanied by an error.
     | "unknown"
 
-    // Building means that we are building the Docker image for the workspace. A workspace will enter this phase only
-    // if an image build is required for that workspace.
-    | "building"
-
     // Preparing means that we haven't actually started the workspace instance just yet, but rather
     // are still preparing for launch.
     | "preparing"
+
+    // Building means that we are building the Docker image for the workspace. A workspace will enter this phase only
+    // if an image build is required for that workspace.
+    | "building"
 
     // Pending means the workspace does not yet consume resources in the cluster, but rather is looking for
     // some space within the cluster. If for example the cluster needs to scale up to accomodate the
