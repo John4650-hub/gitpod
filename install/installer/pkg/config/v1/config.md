@@ -7,8 +7,8 @@ Config defines the v1 version structure of the gitpod config file
 | Property | Type | Required | Allowed| Description |
 | --- | --- | --- | --- | --- |
 |`kind`|string|N| `Meta`, `Workspace`, `Full` ||
-|`domain`|string|Y|  ||
-|`metadata.region`|string|Y|  ||
+|`domain`|string|Y|  |  The domain to deploy to|
+|`metadata.region`|string|Y|  |  Location for your objectStorage provider|
 |`repository`|string|Y|  ||
 |`observability.logLevel`|string|N| `trace`, `debug`, `info`, `warning`, `error`, `fatal`, `panic` |Taken from github.com/gitpod-io/gitpod/components/gitpod-protocol/src/util/logging.ts|
 |`observability.tracing.endpoint`|string|N|  ||
@@ -42,8 +42,8 @@ Config defines the v1 version structure of the gitpod config file
 |`imagePullSecrets[ ].kind`|string|N| `secret` ||
 |`imagePullSecrets[ ].name`|string|Y|  ||
 |`workspace.runtime.fsShiftMethod`|string|N| `fuse`, `shiftfs` ||
-|`workspace.runtime.containerdRuntimeDir`|string|Y|  ||
-|`workspace.runtime.containerdSocket`|string|Y|  ||
+|`workspace.runtime.containerdRuntimeDir`|string|Y|  |  The location of containerd socket on the host machine|
+|`workspace.runtime.containerdSocket`|string|Y|  |  The location of containerd socket on the host machine|
 |`workspace.resources.requests`||Y|  |  todo(sje): add custom validation to corev1.ResourceList|
 |`workspace.resources.limits`||N|  ||
 |`workspace.resources.dynamicLimits`||N|  ||
