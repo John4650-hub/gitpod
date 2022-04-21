@@ -398,11 +398,10 @@ export default class StartWorkspace extends React.Component<StartWorkspaceProps,
             // unknown indicates an issue within the system in that it cannot determine the actual phase of
             // a workspace. This phase is usually accompanied by an error.
             case "unknown":
+                break;
             // Preparing means that we haven't actually started the workspace instance just yet, but rather
             // are still preparing for launch.
             case "preparing":
-                break;
-
             // Building means we're building the Docker image for the workspace.
             case "building":
                 return <ImageBuildView workspaceId={this.state.workspaceInstance.workspaceId} />;
