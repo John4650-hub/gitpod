@@ -80,7 +80,9 @@ export default function License() {
                             target="_blank"
                         >
                             <span>Compare Plans</span>
-                            <LinkSvg />
+                            <div className="self-end">
+                                <LinkSvg />
+                            </div>
                         </a>
                     </SolidCard>
                 </div>
@@ -160,7 +162,7 @@ function professionalPlan(userCount: number, seats: number, trial: boolean, vali
         if (typeof expDate.getTime !== "function") {
             return trial ? additionalLicenseInfo("Trial") : additionalLicenseInfo("Paid");
         } else {
-            return additionalLicenseInfo("Expires on " + expDate.toLocaleDateString());
+            return additionalLicenseInfo("Expires on " + expDate.toDateString());
         }
     };
 
