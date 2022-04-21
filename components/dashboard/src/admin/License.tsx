@@ -48,18 +48,18 @@ export default function License() {
                 subtitle="License associated with your Gitpod Installation"
             >
                 <div className="flex flex-row space-x-4">
-                    <Card className="bg-gray-800 dark:bg-gray-100 text-gray-300 dark:text-gray-500">
+                    <Card>
                         {licenseLevel}
                         {paid}
-                        <div className="pt-4 font-semibold">Available features:</div>
-                        <div className="flex flex-col pt-1">
+                        <div className="mt-4 font-semibold">Available features:</div>
+                        <div className="flex flex-col items-start">
                             {features &&
                                 features.map((feat: string) => (
-                                    <span className="inline-flex">
+                                    <span className="inline-flex space-x-1">
                                         {featureList?.includes(feat) ? (
-                                            <CheckSvg fill="currentColor" className="w-4 h-4 mt-1" />
+                                            <CheckSvg fill="currentColor" className="self-center" />
                                         ) : (
-                                            <XSvg fill="currentColor" className="pt-1 h-3 mt-1" />
+                                            <XSvg fill="currentColor" className="self-center h-2" />
                                         )}
                                         <span>{capitalizeInitials(feat)}</span>
                                     </span>
