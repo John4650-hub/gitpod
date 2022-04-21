@@ -57,9 +57,9 @@ export default function License() {
                                 features.map((feat: string) => (
                                     <span className="inline-flex">
                                         {featureList?.includes(feat) ? (
-                                            <CheckSvg fill="currentColor" className="flex-no-shrink fill-current" />
+                                            <CheckSvg fill="currentColor" className="w-4 h-4 mt-1" />
                                         ) : (
-                                            <XSvg fill="currentColor" className="flex-no-shrink fill-current pt-2" />
+                                            <XSvg fill="currentColor" className="pt-1 h-3 mt-1" />
                                         )}
                                         <span>{capitalizeInitials(feat)}</span>
                                     </span>
