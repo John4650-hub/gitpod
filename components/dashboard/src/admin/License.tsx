@@ -149,7 +149,7 @@ function professionalPlan(userCount: number, seats: number, trial: boolean, vali
             </>
         ) : (
             <>
-                <div className="text-green-600">You have an active professional license.</div>
+                <div className="text-green-600 dark:text-green-400">You have an active professional license.</div>
                 <div className="flex justify-right my-4 mx-1">
                     <Success fill="green" className="h-8 w-8" />
                 </div>
