@@ -8,7 +8,7 @@ function SolidCard(p: { className?: string; children?: React.ReactNode }) {
     return (
         <div
             className={
-                "flex rounded-xl text-base w-72 h-64 px-4 bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-600" +
+                "flex rounded-xl text-base w-72 h-64 px-4 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-600" +
                 (p.className || "")
             }
         >
