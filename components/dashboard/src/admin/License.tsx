@@ -45,7 +45,7 @@ export default function License() {
             <PageWithSubMenu
                 subMenu={adminMenu}
                 title="License"
-                subtitle="License associated with your Gitpod Installation"
+                subtitle="License associated with your Gitpod installation"
             >
                 <div className="flex flex-row space-x-4">
                     <Card>
