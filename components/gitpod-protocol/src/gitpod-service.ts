@@ -529,8 +529,8 @@ export type GitpodService = GitpodServiceImpl<GitpodClient, GitpodServer>;
 const hasWindow = typeof window !== "undefined";
 const phasesOrder: Record<WorkspaceInstancePhase, number> = {
     unknown: 0,
-    building: 1,
-    preparing: 2,
+    preparing: 1,
+    building: 2,
     pending: 3,
     creating: 4,
     initializing: 5,
