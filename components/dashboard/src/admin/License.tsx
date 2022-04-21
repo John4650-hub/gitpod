@@ -35,7 +35,7 @@ export default function License() {
     const featureList = license?.enabledFeatures;
     const features = license?.features;
 
-    // if user seats is 0, it means that there is user limit in the license
+    // if user seats is 0, it means that there is no user limit in the license
     const userLimit = license?.seats == 0 ? "Unlimited" : license?.seats;
 
     const [licenseLevel, paid, statusMessage] = license ? getSubscriptionLevel(license) : defaultMessage();
