@@ -162,13 +162,13 @@ class GitpodConnectionProvider : GatewayConnectionProvider {
                             setErrorMessage(update.status.conditions.failed)
                         }
                         when (update.status.phase) {
-                            "building" -> {
-                                phaseMessage.text = "Building"
-                                statusMessage.text = "Building workspace image..."
-                            }
                             "preparing" -> {
                                 phaseMessage.text = "Preparing"
                                 statusMessage.text = "Preparing workspace..."
+                            }
+                            "building" -> {
+                                phaseMessage.text = "Building"
+                                statusMessage.text = "Building workspace image..."
                             }
                             "pending" -> {
                                 phaseMessage.text = "Preparing"
