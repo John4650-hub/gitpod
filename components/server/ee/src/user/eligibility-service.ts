@@ -7,7 +7,13 @@
 import { inject, injectable } from "inversify";
 import { TeamSubscriptionDB, UserDB } from "@gitpod/gitpod-db/lib";
 import { TokenProvider } from "../../../src/user/token-provider";
-import { User, WorkspaceTimeoutDuration, WorkspaceInstance, WORKSPACE_TIMEOUT_DEFAULT_LONG, WORKSPACE_TIMEOUT_DEFAULT_SHORT } from "@gitpod/gitpod-protocol";
+import {
+    User,
+    WorkspaceTimeoutDuration,
+    WorkspaceInstance,
+    WORKSPACE_TIMEOUT_DEFAULT_LONG,
+    WORKSPACE_TIMEOUT_DEFAULT_SHORT,
+} from "@gitpod/gitpod-protocol";
 import { RemainingHours } from "@gitpod/gitpod-protocol/lib/accounting-protocol";
 import { log } from "@gitpod/gitpod-protocol/lib/util/logging";
 import { Plans, MAX_PARALLEL_WORKSPACES } from "@gitpod/gitpod-protocol/lib/plans";
@@ -141,7 +147,7 @@ export class EligibilityService {
 
         const hasHitParallelWorkspaceLimit = async (): Promise<HitParallelWorkspaceLimit | undefined> => {
             const max = await this.getMaxParallelWorkspaces(user);
-            const instances = (await runningInstances).filter((i) => i.status.phase !== "unknown");
+            const instances = (await runningInstances).filter((i) => i.status.phase !== "preparing");
             const current = instances.length; // >= parallelWorkspaceAllowance;
             if (current >= max) {
                 return {
