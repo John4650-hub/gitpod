@@ -16,6 +16,8 @@ import { ReactComponent as Success } from "../images/check-circle.svg";
 import { LicenseInfo } from "@gitpod/gitpod-protocol";
 import { ReactComponent as XSvg } from "../images/x.svg";
 import { ReactComponent as CheckSvg } from "../images/check.svg";
+import SolidCard from "../components/SolidCard";
+import Card from "../components/Card";
 
 export default function License() {
     const { license, setLicense } = useContext(LicenseContext);
@@ -46,25 +48,25 @@ export default function License() {
                 subtitle="License associated with your Gitpod Installation"
             >
                 <div className="flex flex-row space-x-4">
-                    <Card className="bg-gray-800 dark:bg-gray-100 text-gray-300 dark:text-gray-400">
+                    <Card className="bg-gray-800 dark:bg-gray-100 text-gray-300 dark:text-gray-500">
                         {licenseLevel}
                         {paid}
                         <div className="pt-4 font-semibold">Available features:</div>
                         <div className="flex flex-col pt-1">
                             {features &&
                                 features.map((feat: string) => (
-                                    <span className="inline-flex px-1">
+                                    <span className="inline-flex">
                                         {featureList?.includes(feat) ? (
-                                            <CheckSvg className="w-5" strokeWidth="1" />
+                                            <CheckSvg fill="currentColor" className="flex-no-shrink fill-current" />
                                         ) : (
-                                            <XSvg strokeWidth="1" className="w-5" />
+                                            <XSvg fill="currentColor" className="flex-no-shrink fill-current pt-2" />
                                         )}
                                         <span>{capitalizeInitials(feat)}</span>
                                     </span>
                                 ))}
                         </div>
                     </Card>
-                    <Card className="bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-600">
+                    <SolidCard>
                         <div className="text-gray-600 dark:text-gray-200 py-4 flex-row flex font-semibold items-center">
                             {statusMessage}
                         </div>
@@ -84,7 +86,7 @@ export default function License() {
                                 <div className="font-semibold">Compare Plans</div>
                             </button>
                         </div>
-                    </Card>
+                    </SolidCard>
                 </div>
             </PageWithSubMenu>
         </div>
@@ -210,12 +212,4 @@ function communityPlan(userCount: number, seats: number, fallbackAllowed: boolea
 
 function isGitpodIo() {
     return window.location.hostname === "gitpod.io" || window.location.hostname === "gitpod-staging.com";
-}
-
-function Card(p: { className?: string; children?: React.ReactNode }) {
-    return (
-        <div className={"flex rounded-xl text-base w-72 h-64 px-4 " + (p.className || "")}>
-            <span>{p.children}</span>
-        </div>
-    );
 }
