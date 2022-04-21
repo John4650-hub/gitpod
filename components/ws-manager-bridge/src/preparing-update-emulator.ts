@@ -42,7 +42,10 @@ export class PreparingUpdateEmulator implements Disposable {
                 const span = TraceContext.startSpan("preparingUpdateEmulatorRun");
                 const ctx = { span };
                 try {
-                    const instances = await this.workspaceDb.findInstancesByPhaseAndRegion("preparing", region);
+                    const instances = (
+                        await this.workspaceDb.findInstancesByPhaseAndRegion("preparing", region)
+                    ).concat(await this.workspaceDb.findInstancesByPhaseAndRegion("building", region));
+
                     span.setTag("preparingUpdateEmulatorRun.nrOfInstances", instances.length);
                     for (const instance of instances) {
                         const hash = hasher(instance);
