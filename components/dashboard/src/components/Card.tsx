@@ -8,7 +8,7 @@ function Card(p: { className?: string; children?: React.ReactNode }) {
     return (
         <div
             className={
-                "flex rounded-xl text-base w-72 h-64 px-4 bg-gray-800 dark:bg-gray-100 text-gray-300 dark:text-gray-500" +
+                "flex rounded-xl w-72 h-64 px-4 bg-gray-800 dark:bg-gray-100 text-gray-300 dark:text-gray-500" +
                 (p.className || "")
             }
         >

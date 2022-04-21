@@ -16,6 +16,7 @@ import { ReactComponent as Success } from "../images/check-circle.svg";
 import { LicenseInfo } from "@gitpod/gitpod-protocol";
 import { ReactComponent as XSvg } from "../images/x.svg";
 import { ReactComponent as CheckSvg } from "../images/check.svg";
+import { ReactComponent as LinkSvg } from "../images/external-link.svg";
 import SolidCard from "../components/SolidCard";
 import Card from "../components/Card";
 
@@ -51,8 +52,8 @@ export default function License() {
                     <Card>
                         {licenseLevel}
                         {paid}
-                        <div className="mt-4 font-semibold">Available features:</div>
-                        <div className="flex flex-col items-start">
+                        <p className="mt-4 font-semibold">Available features:</p>
+                        <div className="flex flex-col items-start text-sm">
                             {features &&
                                 features.map((feat: string) => (
                                     <span className="inline-flex space-x-1">
@@ -67,25 +68,20 @@ export default function License() {
                         </div>
                     </Card>
                     <SolidCard>
-                        <div className="text-gray-600 dark:text-gray-200 py-2 flex-row flex font-semibold items-center">
-                            {statusMessage}
-                        </div>
+                        <div className="my-2">{statusMessage}</div>
                         <p className="dark:text-gray-500 font-semibold">Registered Users</p>
-                        <span className="dark:text-gray-300 pt-1 text-lg">{license?.userCount || 0}</span>
+                        <span className="dark:text-gray-300 text-lg">{license?.userCount || 0}</span>
                         <span className="dark:text-gray-500 text-gray-400 pt-1 text-lg"> / {userLimit} </span>
                         <p className="dark:text-gray-500 pt-2 font-semibold">License Type</p>
-                        <h4 className="dark:text-gray-300 pt-1 text-lg">{capitalizeInitials(license?.type || "")}</h4>
-                        <div className="flex justify-end bottom-2 relative">
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    window.location.href = "https://www.gitpod.io/self-hosted";
-                                }}
-                            >
-                                <div className="font-semibold">Compare Plans</div>
-                            </button>
-                        </div>
+                        <h4 className="dark:text-gray-300 text-lg">{capitalizeInitials(license?.type || "")}</h4>
+                        <a
+                            className="gp-link flex flex-row mr-4 justify-end font-semibold space-x-2"
+                            href="https://www.gitpod.io/self-hosted"
+                            target="_blank"
+                        >
+                            <span>Compare Plans</span>
+                            <LinkSvg />
+                        </a>
                     </SolidCard>
                 </div>
             </PageWithSubMenu>
@@ -116,22 +112,22 @@ function getSubscriptionLevel(license: LicenseInfo): ReactElement[] {
 }
 
 function licenseLevel(level: string): ReactElement {
-    return <p className="text-white dark:text-black font-bold pt-4"> {level}</p>;
+    return <div className="text-white dark:text-black font-semibold mt-4"> {level}</div>;
 }
 
 function additionalLicenseInfo(data: string): ReactElement {
-    return <p className="dark:text-gray-500">{data}</p>;
+    return <div className="dark:text-gray-500 font-semibold">{data}</div>;
 }
 
 function defaultMessage(): ReactElement[] {
     const alertMessage = () => {
         return (
-            <>
+            <span className="text-gray-600 dark:text-gray-50 flex font-semibold items-center">
                 <div>Inactive or unknown license</div>
                 <div className="flex justify-right my-4 mx-1">
                     <Alert fill="grey" className="h-8 w-8" />
                 </div>
-            </>
+            </span>
         );
     };
 
@@ -141,34 +137,30 @@ function defaultMessage(): ReactElement[] {
 function professionalPlan(userCount: number, seats: number, trial: boolean, validUntil: string): ReactElement[] {
     const alertMessage = (aboveLimit: boolean) => {
         return aboveLimit ? (
-            <>
-                <div className="text-red-600">You have exceeded the usage limit.</div>
+            <span className="text-red-700 dark:text-red-400 flex font-semibold items-center">
+                <div>You have exceeded the usage limit.</div>
                 <div className="flex justify-right my-4 mx-1">
-                    <Alert fill="red" className="h-6 w-6" />
+                    <Alert className="h-6 w-6" />
                 </div>
-            </>
+            </span>
         ) : (
-            <>
-                <div className="text-green-600 dark:text-green-400">You have an active professional license.</div>
+            <span className="text-green-600 dark:text-green-400 flex font-semibold items-center">
+                <div>You have an active professional license.</div>
                 <div className="flex justify-right my-4 mx-1">
-                    <Success fill="green" className="h-8 w-8" />
+                    <Success className="h-8 w-8" />
                 </div>
-            </>
+            </span>
         );
     };
 
     const aboveLimit: boolean = userCount > seats;
 
     const licenseTitle = () => {
-        if (trial) {
-            const expDate = new Date(validUntil);
-            if (typeof expDate.getTime !== "function") {
-                return additionalLicenseInfo("Trial");
-            } else {
-                return additionalLicenseInfo("Trial expires on " + expDate.toLocaleDateString());
-            }
+        const expDate = new Date(validUntil);
+        if (typeof expDate.getTime !== "function") {
+            return trial ? additionalLicenseInfo("Trial") : additionalLicenseInfo("Paid");
         } else {
-            return additionalLicenseInfo("Paid");
+            return additionalLicenseInfo("Expires on " + expDate.toLocaleDateString());
         }
     };
 
@@ -179,28 +171,28 @@ function communityPlan(userCount: number, seats: number, fallbackAllowed: boolea
     const alertMessage = (aboveLimit: boolean) => {
         if (aboveLimit) {
             return fallbackAllowed ? (
-                <>
+                <div className="text-gray-600 dark:text-gray-50 flex font-semibold items-center">
                     <div>No active license. You are using community edition.</div>
-                    <div className="flex justify-right my-4 mx-1">
-                        <Success fill="grey" className="h-8 w-8" />
+                    <div className="my-4 mx-1 ">
+                        <Success className="h-8 w-8" />
                     </div>
-                </>
+                </div>
             ) : (
-                <>
-                    <div className="text-red-600">No active license. You have exceeded the usage limit.</div>
+                <span className="text-red-700 dark:text-red-400 flex font-semibold items-center">
+                    <div>No active license. You have exceeded the usage limit.</div>
                     <div className="flex justify-right my-4 mx-1">
-                        <Alert fill="red" className="h-8 w-8" />
+                        <Alert className="h-8 w-8" />
                     </div>
-                </>
+                </span>
             );
         } else {
             return (
-                <>
+                <span className="text-green-600 dark:text-green-400 flex font-semibold items-center">
                     <div>You are using the free community edition.</div>
                     <div className="flex justify-right my-4 mx-1">
                         <Success fill="green" className="h-8 w-8" />
                     </div>
-                </>
+                </span>
             );
         }
     };
