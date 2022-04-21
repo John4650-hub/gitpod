@@ -863,6 +863,18 @@ export namespace PrebuiltWorkspaceContext {
     }
 }
 
+export interface WithEditorContext extends WorkspaceContext {
+    ide: string;
+    useLatest?: boolean;
+    referrer?: string;
+}
+
+export namespace WithEditorContext {
+    export function is(context: any): context is WithEditorContext {
+        return context && "ide" in context;
+    }
+}
+
 export interface WithReferrerContext extends WorkspaceContext {
     referrer: string;
     referrerIde?: string;
@@ -870,7 +882,7 @@ export interface WithReferrerContext extends WorkspaceContext {
 
 export namespace WithReferrerContext {
     export function is(context: any): context is WithReferrerContext {
-        return context && "referrer" in context;
+        return context && "referrer" in context && !WithEditorContext.is(context);
     }
 }
 

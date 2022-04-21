@@ -103,7 +103,7 @@ import * as path from "path";
 import * as grpc from "@grpc/grpc-js";
 import { IDEConfig, IDEConfigService } from "../ide-config";
 import { EnvVarWithValue } from "@gitpod/gitpod-protocol/src/protocol";
-import { WithReferrerContext } from "@gitpod/gitpod-protocol/lib/protocol";
+import { WithEditorContext, WithReferrerContext } from "@gitpod/gitpod-protocol/lib/protocol";
 import { IDEOption, IDEOptions } from "@gitpod/gitpod-protocol/lib/ide-protocol";
 import { Deferred } from "@gitpod/gitpod-protocol/lib/util/deferred";
 import { ExtendedUser } from "@gitpod/ws-manager/lib/constraints";
@@ -607,8 +607,12 @@ export class WorkspaceStarter {
             user.additionalData.ideSettings = migratted;
         }
 
-        const ideChoice = user.additionalData?.ideSettings?.defaultIde;
-        const useLatest = !!user.additionalData?.ideSettings?.useLatestVersion;
+        const preferenceIDE = user.additionalData?.ideSettings?.defaultIde;
+        const perferenceUseLatest = !!user.additionalData?.ideSettings?.useLatestVersion;
+        const ideChoice = WithEditorContext.is(workspace.context) ? workspace.context.ide : preferenceIDE;
+        const useLatest = WithEditorContext.is(workspace.context)
+            ? workspace.context.useLatest ?? perferenceUseLatest
+            : perferenceUseLatest;
 
         // TODO(cw): once we allow changing the IDE in the workspace config (i.e. .gitpod.yml), we must
         //           give that value precedence over the default choice.
@@ -618,7 +622,7 @@ export class WorkspaceStarter {
             ideConfig: {
                 // We only check user setting because if code(insider) but desktopIde has no latestImage
                 // it still need to notice user that this workspace is using latest IDE
-                useLatest: user.additionalData?.ideSettings?.useLatestVersion,
+                useLatest,
             },
         };
 
@@ -635,9 +639,10 @@ export class WorkspaceStarter {
 
         const referrerIde = this.resolveReferrerIDE(workspace, user, ideConfig);
         if (referrerIde) {
-            configuration.desktopIdeImage = useLatest
+            configuration.desktopIdeImage = perferenceUseLatest
                 ? referrerIde.option.latestImage ?? referrerIde.option.image
                 : referrerIde.option.image;
+            configuration.ideConfig!.useLatest = perferenceUseLatest;
             if (!user.additionalData?.ideSettings) {
                 // A user does not have IDE settings configured yet configure it with a referrer ide as default.
                 const additionalData = user?.additionalData || {};
@@ -691,17 +696,25 @@ export class WorkspaceStarter {
             },
             configuration,
         };
-        if (WithReferrerContext.is(workspace.context)) {
+
+        const trackIDEReferrer = (referrer?: string, referrerIde?: string, useLatest?: boolean) => {
             this.analytics.track({
                 userId: user.id,
                 event: "ide_referrer",
                 properties: {
                     workspaceId: workspace.id,
                     instanceId: instance.id,
-                    referrer: workspace.context.referrer,
-                    referrerIde: workspace.context.referrerIde,
+                    // referrer can be undefined if context is WithEditorContext
+                    referrer: referrer ?? "unknown",
+                    useLatest,
+                    referrerIde,
                 },
             });
+        };
+        if (WithReferrerContext.is(workspace.context)) {
+            trackIDEReferrer(workspace.context.referrer, workspace.context.referrerIde, perferenceUseLatest);
+        } else if (WithEditorContext.is(workspace.context)) {
+            trackIDEReferrer(workspace.context.referrer, workspace.context.ide, useLatest);
         }
         return instance;
     }
