@@ -52,7 +52,7 @@ export default function License() {
                     <Card>
                         {licenseLevel}
                         {paid}
-                        <p className="mt-4 font-semibold">Available features:</p>
+                        <div className="mt-4 font-semibold text-sm">Available features:</div>
                         <div className="flex flex-col items-start text-sm">
                             {features &&
                                 features.map((feat: string) => (
@@ -75,7 +75,7 @@ export default function License() {
                         <p className="dark:text-gray-500 pt-2 font-semibold">License Type</p>
                         <h4 className="dark:text-gray-300 text-lg">{capitalizeInitials(license?.type || "")}</h4>
                         <a
-                            className="gp-link flex flex-row mr-4 justify-end font-semibold space-x-2"
+                            className="gp-link flex flex-row mr-2 justify-end font-semibold space-x-2 mt-6"
                             href="https://www.gitpod.io/self-hosted"
                             target="_blank"
                         >
@@ -118,7 +118,7 @@ function licenseLevel(level: string): ReactElement {
 }
 
 function additionalLicenseInfo(data: string): ReactElement {
-    return <div className="dark:text-gray-500 font-semibold">{data}</div>;
+    return <div className="dark:text-gray-500 text-gray-400 font-semibold text-sm">{data}</div>;
 }
 
 function defaultMessage(): ReactElement[] {
@@ -162,7 +162,10 @@ function professionalPlan(userCount: number, seats: number, trial: boolean, vali
         if (typeof expDate.getTime !== "function") {
             return trial ? additionalLicenseInfo("Trial") : additionalLicenseInfo("Paid");
         } else {
-            return additionalLicenseInfo("Expires on " + expDate.toDateString());
+            return additionalLicenseInfo(
+                "Expires on " +
+                    expDate.toLocaleDateString("en-DB", { year: "numeric", month: "short", day: "numeric" }),
+            );
         }
     };
 
