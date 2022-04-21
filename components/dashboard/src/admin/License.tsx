@@ -67,7 +67,7 @@ export default function License() {
                         </div>
                     </Card>
                     <SolidCard>
-                        <div className="text-gray-600 dark:text-gray-200 py-4 flex-row flex font-semibold items-center">
+                        <div className="text-gray-600 dark:text-gray-200 py-2 flex-row flex font-semibold items-center">
                             {statusMessage}
                         </div>
                         <p className="dark:text-gray-500 font-semibold">Registered Users</p>
