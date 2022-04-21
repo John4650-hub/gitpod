@@ -963,7 +963,7 @@ export class WorkspaceStarter {
             // Update workspace instance to tell the world we're building an image
             const workspaceImage = result.ref;
             const status: WorkspaceInstanceStatus = result.actuallyNeedsBuild
-                ? { ...instance.status, phase: "preparing" }
+                ? { ...instance.status, phase: "building" }
                 : instance.status;
             instance = await this.workspaceDb
                 .trace({ span })
