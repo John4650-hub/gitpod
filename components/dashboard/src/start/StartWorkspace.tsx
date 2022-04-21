@@ -337,7 +337,7 @@ export default class StartWorkspace extends React.Component<StartWorkspaceProps,
             return;
         }
 
-        if (workspaceInstance.status.phase === "preparing") {
+        if (workspaceInstance.status.phase === "building") {
             this.setState({ hasImageBuildLogs: true });
         }
 
