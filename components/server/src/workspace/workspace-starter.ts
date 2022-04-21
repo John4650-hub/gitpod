@@ -1016,7 +1016,7 @@ export class WorkspaceStarter {
             }
 
             instance = await this.workspaceDb.trace({ span }).updateInstancePartial(instance.id, {
-                status: { ...instance.status, phase: "preparing", conditions: { failed: message }, message },
+                status: { ...instance.status, phase: "building", conditions: { failed: message }, message },
             });
             await this.messageBus.notifyOnInstanceUpdate(workspace.ownerId, instance);
 
