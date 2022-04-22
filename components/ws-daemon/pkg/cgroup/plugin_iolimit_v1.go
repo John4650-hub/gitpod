@@ -98,7 +98,6 @@ func (c *IOLimiterV1) Apply(ctx context.Context, basePath, cgroupPath string) er
 	writeLimit := func(limitPath string, content []string) error {
 		_, err := os.Stat(limitPath)
 		if errors.Is(err, os.ErrNotExist) {
-			log.WithError(err).WithField("limitPath", limitPath).Debug("blkio file does not exist")
 			return nil
 		}
 
