@@ -348,9 +348,7 @@ func (o *Orchestrator) Build(req *protocol.BuildRequest, resp protocol.ImageBuil
 					annotationRef:     wsrefstr,
 					annotationBaseRef: baseref,
 				},
-				// TODO(cw): use the actual image build owner here and move to annotation based filter
-				//           when retrieving running image builds.
-				Owner: buildWorkspaceOwnerID,
+				Owner: req.GetTriggeredBy(),
 			},
 			Spec: &wsmanapi.StartWorkspaceSpec{
 				Initializer:        initializer,
