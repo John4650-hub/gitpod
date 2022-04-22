@@ -43,8 +43,11 @@ export class PreparingUpdateEmulator implements Disposable {
                 const ctx = { span };
                 try {
                     const instances = (
-                        await this.workspaceDb.findInstancesByPhaseAndRegion("preparing", region)
-                    ).concat(await this.workspaceDb.findInstancesByPhaseAndRegion("building", region));
+                        await Promise.all([
+                            this.workspaceDb.findInstancesByPhaseAndRegion("preparing", region),
+                            await this.workspaceDb.findInstancesByPhaseAndRegion("building", region),
+                        ])
+                    ).flat();
 
                     span.setTag("preparingUpdateEmulatorRun.nrOfInstances", instances.length);
                     for (const instance of instances) {
