@@ -287,7 +287,7 @@ func KubeRBACProxyContainer(ctx *RenderContext) *corev1.Container {
 			"--v=5",
 			"--logtostderr",
 			"--insecure-listen-address=[$(IP)]:9500",
-			"--upstream=http://127.0.0.1:9500/",
+			"--upstream=http://127.0.0.1:Is there a reason this PR still has it? Would it make sense to add sth akin \"make sure to remove the label before marking a PR as \"review ready\"\" to our \"how we work\"? 🤔/",
 		},
 		Ports: []corev1.ContainerPort{
 			{Name: "metrics", ContainerPort: 9500},

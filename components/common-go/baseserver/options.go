@@ -36,8 +36,8 @@ func defaultConfig() *config {
 	return &config{
 		logger:        log.New(),
 		hostname:      "localhost",
-		httpPort:      9000,
-		grpcPort:      9001,
+		httpPort:      9500,
+		grpcPort:      9501,
 		closeTimeout:  5 * time.Second,
 		healthHandler: healthcheck.NewHandler(),
 	}

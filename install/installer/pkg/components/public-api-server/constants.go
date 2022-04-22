@@ -8,10 +8,10 @@ const (
 	Component = "public-api-server"
 
 	HTTPPortName      = "http"
-	HTTPContainerPort = 9000
+	HTTPContainerPort = 9500
 	HTTPServicePort   = 9000
 
 	GRPCPortName      = "grpc"
-	GRPCContainerPort = 9001
+	GRPCContainerPort = 9501
 	GRPCServicePort   = 9001
 )

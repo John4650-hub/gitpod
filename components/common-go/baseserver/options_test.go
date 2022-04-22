@@ -45,6 +45,11 @@ func TestOptions(t *testing.T) {
 	}, cfg)
 }
 
+func TestDefaultOptions_Ports(t *testing.T) {
+	require.Equal(t, 9500, defaultConfig().httpPort)
+	require.Equal(t, 9501, defaultConfig().grpcPort)
+}
+
 func TestWithTTPPort(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		_, err := evaluateOptions(defaultConfig(), WithHTTPPort(-1))
