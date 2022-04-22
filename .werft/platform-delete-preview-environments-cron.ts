@@ -59,13 +59,28 @@ async function deletePreviewEnvironments() {
     try {
         const previewsToDelete = previews.filter(ns => !expectedPreviewEnvironmentNamespaces.has(ns))
         // Trigger namespace deletion in parallel
-        const promises = previewsToDelete.map(preview => wipePreviewEnvironmentAndNamespace(helmInstallName, preview, CORE_DEV_KUBECONFIG_PATH, { slice: `Deleting preview ${preview}` }));
+        const promises = previewsToDelete.map(preview => {
+            return Promise.all([
+                removeCertificate(preview, CORE_DEV_KUBECONFIG_PATH),
+                wipePreviewEnvironmentAndNamespace(helmInstallName, preview, CORE_DEV_KUBECONFIG_PATH, { slice: `Deleting preview ${preview}` })
+            ])
+        });
         // But wait for all of them to finish before (or one of them to fail) before we continue
         await Promise.all(promises)
     } catch (err) {
         werft.fail("deleting previews", err)
     }
     werft.done("deleting previews")
+}
+
+async function removeCertificate(preview: string, kubectlConfig: string) {
+    console.log(`kubectl --kubeconfig ${kubectlConfig} -n certs delete cert ${preview}`)
+    return
+}
+
+async function removeDNSRecord(preview: string, ) {
+    console.log(`gcloud dns record-sets delete *.${preview}.preview.gitpod-dev.com. --type=A --zone=preview-gitpod-dev-com`)
+    return
 }
 
 async function cleanLoadbalancer() {
