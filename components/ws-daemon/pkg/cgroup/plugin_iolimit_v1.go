@@ -126,23 +126,23 @@ func (c *IOLimiterV1) Apply(ctx context.Context, basePath, cgroupPath string) er
 		return nil
 	}
 
-	writeLimits := func(l limits) error {
-		base := filepath.Join(basePath, "blkio", cgroupPath)
+	baseCgroupPath := filepath.Join(basePath, "blkio", cgroupPath)
 
+	writeLimits := func(l limits) error {
 		var err error
-		err = writeLimit(filepath.Join(base, fnBlkioThrottleWriteBps), produceLimits(fnBlkioThrottleWriteBps, l.WriteBytesPerSecond))
+		err = writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleWriteBps), produceLimits(fnBlkioThrottleWriteBps, l.WriteBytesPerSecond))
 		if err != nil {
 			return xerrors.Errorf("cannot write %s: %w", fnBlkioThrottleWriteBps, err)
 		}
-		err = writeLimit(filepath.Join(base, fnBlkioThrottleReadBps), produceLimits(fnBlkioThrottleReadBps, l.ReadBytesPerSecond))
+		err = writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleReadBps), produceLimits(fnBlkioThrottleReadBps, l.ReadBytesPerSecond))
 		if err != nil {
 			return xerrors.Errorf("cannot write %s: %w", fnBlkioThrottleReadBps, err)
 		}
-		err = writeLimit(filepath.Join(base, fnBlkioThrottleWriteIOPS), produceLimits(fnBlkioThrottleWriteIOPS, l.WriteIOPS))
+		err = writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleWriteIOPS), produceLimits(fnBlkioThrottleWriteIOPS, l.WriteIOPS))
 		if err != nil {
 			return xerrors.Errorf("cannot write %s: %w", fnBlkioThrottleWriteIOPS, err)
 		}
-		err = writeLimit(filepath.Join(base, fnBlkioThrottleReadIOPS), produceLimits(fnBlkioThrottleReadIOPS, l.ReadIOPS))
+		err = writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleReadIOPS), produceLimits(fnBlkioThrottleReadIOPS, l.ReadIOPS))
 		if err != nil {
 			return xerrors.Errorf("cannot write %s: %w", fnBlkioThrottleReadIOPS, err)
 		}
