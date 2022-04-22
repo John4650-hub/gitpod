@@ -88,7 +88,7 @@ func (c *IOLimiterV1) Apply(ctx context.Context, basePath, cgroupPath string) er
 	log.WithField("devices", devices).Debug("found devices")
 
 	produceLimits := func(value int64) []string {
-		lines := make([]string, 0, len(devices))
+		lines := make([]string, len(devices))
 		for _, dev := range devices {
 			lines = append(lines, fmt.Sprintf("%s %d", dev, value))
 		}
