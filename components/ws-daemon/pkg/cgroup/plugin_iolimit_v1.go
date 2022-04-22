@@ -96,13 +96,13 @@ func (c *IOLimiterV1) Apply(ctx context.Context, basePath, cgroupPath string) er
 	}
 
 	writeLimit := func(limitPath string, content []string) error {
-		for _, l := range content {
-			_, err := os.Stat(limitPath)
-			if errors.Is(err, os.ErrNotExist) {
-				log.WithError(err).WithField("limitPath", limitPath).Debug("blkio file does not exist")
-				continue
-			}
+		_, err := os.Stat(limitPath)
+		if errors.Is(err, os.ErrNotExist) {
+			log.WithError(err).WithField("limitPath", limitPath).Debug("blkio file does not exist")
+			return nil
+		}
 
+		for _, l := range content {
 			err = os.WriteFile(limitPath, []byte(l), 0644)
 			if err != nil {
 				log.WithError(err).WithField("limitPath", limitPath).WithField("line", l).Warn("cannot write limit")
