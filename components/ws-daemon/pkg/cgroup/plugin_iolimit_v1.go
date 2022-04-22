@@ -32,20 +32,23 @@ type limits struct {
 	// avoid the creation of limits multiple times
 	// (if the values are not updated)
 	cache map[string][]string
+
+	devices []string
 }
 
 func NewIOLimiterV1(writeBytesPerSecond, readBytesPerSecond, writeIOPs, readIOPs int64) *IOLimiterV1 {
-	return &IOLimiterV1{
-		limits: limits{
-			WriteBytesPerSecond: writeBytesPerSecond,
-			ReadBytesPerSecond:  readBytesPerSecond,
-			WriteIOPS:           writeIOPs,
-			ReadIOPS:            readIOPs,
-
-			cache: make(map[string][]string),
-		},
-		cond: sync.NewCond(&sync.Mutex{}),
+	limiter := &IOLimiterV1{
+		limits: buildLimits(writeBytesPerSecond, readBytesPerSecond, writeIOPs, readIOPs),
+		cond:   sync.NewCond(&sync.Mutex{}),
 	}
+
+	limiter.produceLimits(fnBlkioThrottleWriteBps, writeBytesPerSecond)
+	limiter.produceLimits(fnBlkioThrottleReadBps, readBytesPerSecond)
+	limiter.produceLimits(fnBlkioThrottleWriteIOPS, writeIOPs)
+	limiter.produceLimits(fnBlkioThrottleReadIOPS, readIOPs)
+
+	return limiter
+
 }
 
 func (c *IOLimiterV1) Name() string  { return "iolimiter-v1" }
@@ -61,55 +64,33 @@ const (
 // TODO: enable custom configuration
 var blockDevices = []string{"sd*", "md*", "nvme0n*"}
 
-func (c *IOLimiterV1) Update(writeBytesPerSecond, readBytesPerSecond, writeIOPs, readIOPs int64) {
-	c.cond.L.Lock()
-	defer c.cond.L.Unlock()
-
-	c.limits = limits{
+func buildLimits(writeBytesPerSecond, readBytesPerSecond, writeIOPs, readIOPs int64) limits {
+	return limits{
 		WriteBytesPerSecond: writeBytesPerSecond,
 		ReadBytesPerSecond:  readBytesPerSecond,
 		WriteIOPS:           writeIOPs,
 		ReadIOPS:            readIOPs,
 
-		cache: make(map[string][]string),
+		cache:   make(map[string][]string),
+		devices: buildDevices(),
 	}
+}
+
+func (c *IOLimiterV1) Update(writeBytesPerSecond, readBytesPerSecond, writeIOPs, readIOPs int64) {
+	c.cond.L.Lock()
+	defer c.cond.L.Unlock()
+
+	c.limits = buildLimits(writeBytesPerSecond, readBytesPerSecond, writeIOPs, readIOPs)
+
+	c.produceLimits(fnBlkioThrottleWriteBps, writeBytesPerSecond)
+	c.produceLimits(fnBlkioThrottleReadBps, readBytesPerSecond)
+	c.produceLimits(fnBlkioThrottleWriteIOPS, writeIOPs)
+	c.produceLimits(fnBlkioThrottleReadIOPS, readIOPs)
+
 	c.cond.Broadcast()
 }
 
 func (c *IOLimiterV1) Apply(ctx context.Context, basePath, cgroupPath string) error {
-	var devices []string
-	for _, wc := range blockDevices {
-		matches, err := filepath.Glob(filepath.Join("/sys/block", wc, "dev"))
-		if err != nil {
-			log.WithField("cgroupPath", cgroupPath).WithField("wc", wc).Warn("cannot glob devices")
-			continue
-		}
-
-		for _, dev := range matches {
-			fc, err := os.ReadFile(dev)
-			if err != nil {
-				log.WithField("dev", dev).WithError(err).Error("cannot read device file")
-			}
-			devices = append(devices, strings.TrimSpace(string(fc)))
-		}
-	}
-	log.WithField("devices", devices).Debug("found devices")
-
-	produceLimits := func(kind string, value int64) []string {
-		if val, exists := c.limits.cache[kind]; exists {
-			return val
-		}
-
-		lines := make([]string, len(devices))
-		for _, dev := range devices {
-			lines = append(lines, fmt.Sprintf("%s %d", dev, value))
-		}
-
-		c.limits.cache[kind] = lines
-
-		return lines
-	}
-
 	writeLimit := func(limitPath string, content []string) error {
 		_, err := os.Stat(limitPath)
 		if errors.Is(err, os.ErrNotExist) {
@@ -130,19 +111,19 @@ func (c *IOLimiterV1) Apply(ctx context.Context, basePath, cgroupPath string) er
 
 	writeLimits := func(l limits) error {
 		var err error
-		err = writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleWriteBps), produceLimits(fnBlkioThrottleWriteBps, l.WriteBytesPerSecond))
+		err = writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleWriteBps), c.produceLimits(fnBlkioThrottleWriteBps, l.WriteBytesPerSecond))
 		if err != nil {
 			return xerrors.Errorf("cannot write %s: %w", fnBlkioThrottleWriteBps, err)
 		}
-		err = writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleReadBps), produceLimits(fnBlkioThrottleReadBps, l.ReadBytesPerSecond))
+		err = writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleReadBps), c.produceLimits(fnBlkioThrottleReadBps, l.ReadBytesPerSecond))
 		if err != nil {
 			return xerrors.Errorf("cannot write %s: %w", fnBlkioThrottleReadBps, err)
 		}
-		err = writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleWriteIOPS), produceLimits(fnBlkioThrottleWriteIOPS, l.WriteIOPS))
+		err = writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleWriteIOPS), c.produceLimits(fnBlkioThrottleWriteIOPS, l.WriteIOPS))
 		if err != nil {
 			return xerrors.Errorf("cannot write %s: %w", fnBlkioThrottleWriteIOPS, err)
 		}
-		err = writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleReadIOPS), produceLimits(fnBlkioThrottleReadIOPS, l.ReadIOPS))
+		err = writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleReadIOPS), c.produceLimits(fnBlkioThrottleReadIOPS, l.ReadIOPS))
 		if err != nil {
 			return xerrors.Errorf("cannot write %s: %w", fnBlkioThrottleReadIOPS, err)
 		}
@@ -195,4 +176,40 @@ func (c *IOLimiterV1) Apply(ctx context.Context, basePath, cgroupPath string) er
 	}()
 
 	return nil
+}
+
+func buildDevices() []string {
+	var devices []string
+	for _, wc := range blockDevices {
+		matches, err := filepath.Glob(filepath.Join("/sys/block", wc, "dev"))
+		if err != nil {
+			log.WithField("wc", wc).Warn("cannot glob devices")
+			continue
+		}
+
+		for _, dev := range matches {
+			fc, err := os.ReadFile(dev)
+			if err != nil {
+				log.WithField("dev", dev).WithError(err).Error("cannot read device file")
+			}
+			devices = append(devices, strings.TrimSpace(string(fc)))
+		}
+	}
+
+	return devices
+}
+
+func (c *IOLimiterV1) produceLimits(kind string, value int64) []string {
+	if val, exists := c.limits.cache[kind]; exists {
+		return val
+	}
+
+	lines := make([]string, len(c.limits.devices))
+	for _, dev := range c.limits.devices {
+		lines = append(lines, fmt.Sprintf("%s %d", dev, value))
+	}
+
+	c.limits.cache[kind] = lines
+
+	return lines
 }
