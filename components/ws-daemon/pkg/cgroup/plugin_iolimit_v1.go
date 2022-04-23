@@ -94,8 +94,6 @@ func (c *IOLimiterV1) Apply(ctx context.Context, basePath, cgroupPath string) er
 	baseCgroupPath := filepath.Join(basePath, "blkio", cgroupPath)
 
 	writeLimits := func(l limits) error {
-		log.WithField("limits", l).Warn("writing limits")
-
 		err := writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleWriteBps), c.produceLimits(fnBlkioThrottleWriteBps, l.WriteBytesPerSecond))
 		if err != nil {
 			return xerrors.Errorf("cannot write %s: %w", fnBlkioThrottleWriteBps, err)
@@ -156,6 +154,7 @@ func (c *IOLimiterV1) Apply(ctx context.Context, basePath, cgroupPath string) er
 					log.WithError(err).WithField("cgroupPath", cgroupPath).Error("cannot reset IO limits")
 				}
 				log.WithField("cgroupPath", cgroupPath).Debug("stopping IO limiting")
+				return
 			}
 		}
 	}()
