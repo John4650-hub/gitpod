@@ -91,27 +91,12 @@ func (c *IOLimiterV1) Update(writeBytesPerSecond, readBytesPerSecond, writeIOPs,
 }
 
 func (c *IOLimiterV1) Apply(ctx context.Context, basePath, cgroupPath string) error {
-	writeLimit := func(limitPath string, content []string) error {
-		_, err := os.Stat(limitPath)
-		if errors.Is(err, os.ErrNotExist) {
-			return nil
-		}
-
-		for _, l := range content {
-			err = os.WriteFile(limitPath, []byte(l), 0644)
-			if err != nil {
-				log.WithError(err).WithField("limitPath", limitPath).WithField("line", l).Warn("cannot write limit")
-				continue
-			}
-		}
-		return nil
-	}
-
 	baseCgroupPath := filepath.Join(basePath, "blkio", cgroupPath)
 
 	writeLimits := func(l limits) error {
-		var err error
-		err = writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleWriteBps), c.produceLimits(fnBlkioThrottleWriteBps, l.WriteBytesPerSecond))
+		log.WithField("limits", l).Warn("writing limits")
+
+		err := writeLimit(filepath.Join(baseCgroupPath, fnBlkioThrottleWriteBps), c.produceLimits(fnBlkioThrottleWriteBps, l.WriteBytesPerSecond))
 		if err != nil {
 			return xerrors.Errorf("cannot write %s: %w", fnBlkioThrottleWriteBps, err)
 		}
@@ -146,6 +131,7 @@ func (c *IOLimiterV1) Apply(ctx context.Context, basePath, cgroupPath string) er
 			update <- struct{}{}
 		}
 	}()
+
 	go func() {
 		log.WithField("cgroupPath", cgroupPath).Debug("starting IO limiting")
 		err := writeLimits(c.limits)
@@ -172,7 +158,6 @@ func (c *IOLimiterV1) Apply(ctx context.Context, basePath, cgroupPath string) er
 				log.WithField("cgroupPath", cgroupPath).Debug("stopping IO limiting")
 			}
 		}
-
 	}()
 
 	return nil
@@ -212,4 +197,20 @@ func (c *IOLimiterV1) produceLimits(kind string, value int64) []string {
 	c.limits.cache[kind] = lines
 
 	return lines
+}
+
+func writeLimit(limitPath string, content []string) error {
+	_, err := os.Stat(limitPath)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+
+	for _, l := range content {
+		err = os.WriteFile(limitPath, []byte(l), 0644)
+		if err != nil {
+			log.WithError(err).WithField("limitPath", limitPath).WithField("line", l).Warn("cannot write limit")
+			continue
+		}
+	}
+	return nil
 }
